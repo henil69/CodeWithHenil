@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SQL Practical 7 — Command Line Helper</title>
+<style>
+:root{--bg:#080b12;--panel:#101724;--panel2:#0c121d;--line:#263247;--text:#edf3fa;--muted:#94a2b6;--accent:#79c7ff;--good:#8ee6b0;--shadow:0 18px 50px #0007}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 20% 0%,#152237 0,#080b12 42%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.container{width:min(1120px,calc(100% - 28px));margin:auto}.top{position:sticky;top:0;z-index:10;background:#080b12dd;backdrop-filter:blur(14px);border-bottom:1px solid #1c2636}.nav{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand{font-weight:800;letter-spacing:.2px}.brand span{color:var(--accent)}
+main{padding:30px 0 70px}.hero{padding:24px 0 12px}.eyebrow{display:inline-flex;border:1px solid var(--line);background:#0d1521;padding:7px 11px;border-radius:999px;color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.4px}.hero h1{font-size:clamp(32px,6vw,58px);line-height:1.02;margin:16px 0 10px;max-width:850px}.hero p{margin:0;max-width:760px;color:var(--muted);font-size:16px;line-height:1.65}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:24px 0}.stat{border:1px solid var(--line);background:linear-gradient(145deg,#101927,#0c121d);border-radius:16px;padding:15px;box-shadow:var(--shadow)}.stat b{display:block;font-size:15px}.stat span{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.4}
+.toolbar{position:sticky;top:64px;z-index:9;background:#080b12dd;backdrop-filter:blur(12px);padding:12px 0;border-bottom:1px solid #182233;display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #35435a;background:#131c2a;color:var(--text);padding:10px 13px;border-radius:10px;font-weight:750;cursor:pointer}.btn.primary{background:#162b3a;border-color:#416d8d}.btn:hover{border-color:#7286a2;transform:translateY(-1px)}
+.note{margin:18px 0;border:1px solid #2a4055;background:#0d1622;border-radius:14px;padding:13px 15px;color:#c8d4e2;line-height:1.55;font-size:13px}.note strong{color:var(--good)}
+.card{margin:14px 0;border:1px solid var(--line);background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}.head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line)}.head h2{margin:0;font-size:15px}.copy{border:1px solid #3b4a62;background:#151f2e;color:var(--text);padding:8px 10px;border-radius:9px;font-weight:700;cursor:pointer}.copy:hover{border-color:#71839c}pre{margin:0;padding:16px;overflow:auto;background:var(--panel2);font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;color:#dbe7f4;tab-size:4}
+.footer{text-align:center;color:#647185;font-size:12px;margin-top:30px}
+.toast{position:fixed;right:18px;bottom:18px;background:#162131;border:1px solid #45556f;border-radius:10px;padding:10px 13px;box-shadow:var(--shadow);font-weight:750;z-index:50}
+code{font:inherit;color:#cde7fb} @media (max-width:700px){.toolbar{top:57px}.nav{min-height:57px}.hero h1{font-size:38px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="container nav"><div class="brand">SQL <span>Lab Helper</span></div><div style="color:var(--muted);font-size:12px">Practical 7 • Oracle</div></div></header>
+<main class="container">
+<section class="hero"><div class="eyebrow">BASIC OF DATA SCIENCE • PRACTICAL 7</div><h1>Run your college practical with clean SQL*Plus output.</h1><p>Everything is arranged in the same order as the notebook: create table, insert 10 records, verify output, then complete Q1–Q4. Copy any block or the complete script in one click.</p></section>
+<section class="grid"><div class="stat"><b>10 Records</b><span>Employee data ready to paste.</span></div><div class="stat"><b>Q1 → Q4</b><span>Rename, add pincode, rename column, add/resize city.</span></div><div class="stat"><b>Fresh Start</b><span>Old EMPLOYEE / EMP tables are removed automatically.</span></div><div class="stat"><b>SQL*Plus Style</b><span>Expected command-line output is shown below every step.</span></div></section>
+<div class="toolbar"><button class="btn primary" onclick="copy('fullsql')">Copy Complete SQL</button><button class="btn" onclick="downloadSQL()">Download .sql</button><button class="btn" onclick="copy('qcmd')">Copy Q1–Q4</button></div>
+<div class="note"><strong>Lab tip:</strong> Paste the <b>Complete SQL</b> block into SQL Command Line. The first two PL/SQL blocks safely delete an existing <code>EMPLOYEE</code> or <code>EMP</code> table, so you can rerun the practical without the usual “table already exists” problem.</div>
+<section class="card"><div class="head"><h2>Complete SQL — paste this</h2><button class="copy" onclick="copy('fullsql')">Copy</button></div><pre id="fullsql">-- BASIC OF DATA SCIENCE — Practical 7
+-- Oracle SQL*Plus / SQL Command Line
+
+CONNECT system/123;
+
+-- CLEAN START: remove old tables if they already exist
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE employee CASCADE CONSTRAINTS PURGE';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE emp CASCADE CONSTRAINTS PURGE';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -942 THEN RAISE; END IF;
+END;
+/
+
+CREATE TABLE employee (
+    empid INT,
+    empname VARCHAR2(20),
+    department VARCHAR2(20),
+    salary INT
+);
+
+INSERT INTO employee VALUES (1, 'dev', 'sales', 30000);
+INSERT INTO employee VALUES (2, 'yugi', 'IT', 20000);
+INSERT INTO employee VALUES (3, 'harshit', 'hod', 40000);
+INSERT INTO employee VALUES (4, 'james', 'hr', 50000);
+INSERT INTO employee VALUES (5, 'manthan', 'R&D', 52000);
+INSERT INTO employee VALUES (6, 'meet', 'finance', 55000);
+INSERT INTO employee VALUES (7, 'anjali', 'marketing', 42000);
+INSERT INTO employee VALUES (8, 'anil', 'accounts', 60000);
+INSERT INTO employee VALUES (9, 'jimin', 'production', 65000);
+INSERT INTO employee VALUES (10, 'hitesh', 'administration', 70000);
+
+SELECT * FROM employee;
+
+RENAME employee TO emp;
+SELECT * FROM emp;
+
+ALTER TABLE emp ADD pincode INT;
+SELECT * FROM emp;
+
+ALTER TABLE emp RENAME COLUMN empname TO ename;
+SELECT * FROM emp;
+
+ALTER TABLE emp ADD city VARCHAR2(30);
+ALTER TABLE emp MODIFY city VARCHAR2(10);
+SELECT * FROM emp;</pre></section>
+<section class="card"><div class="head"><h2>Step 1 — Create Table</h2><button class="copy" onclick="copy('s1')">Copy</button></div><pre id="s1">SQL&gt; CREATE TABLE employee (
+  2      empid INT,
+  3      empname VARCHAR2(20),
+  4      department VARCHAR2(20),
+  5      salary INT
+  6  );
+
+Table created.</pre></section>
+<section class="card"><div class="head"><h2>Step 2 — Insert 10 Employees</h2><button class="copy" onclick="copy('s2')">Copy</button></div><pre id="s2">SQL&gt; INSERT INTO employee VALUES (1, 'dev', 'sales', 30000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (2, 'yugi', 'IT', 20000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (3, 'harshit', 'hod', 40000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (4, 'james', 'hr', 50000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (5, 'manthan', 'R&amp;D', 52000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (6, 'meet', 'finance', 55000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (7, 'anjali', 'marketing', 42000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (8, 'anil', 'accounts', 60000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (9, 'jimin', 'production', 65000);
+1 row created.
+SQL&gt; INSERT INTO employee VALUES (10, 'hitesh', 'administration', 70000);
+1 row created.</pre></section>
+<section class="card"><div class="head"><h2>Step 3 — Initial SELECT Output</h2><button class="copy" onclick="copy('s3')">Copy</button></div><pre id="s3">SQL&gt; SELECT * FROM employee;
+
+     EMPID EMPNAME              DEPARTMENT                SALARY
+---------- -------------------- -------------------- ----------
+         1 dev                  sales                       30000
+         2 yugi                 IT                          20000
+         3 harshit              hod                         40000
+         4 james                hr                          50000
+         5 manthan              R&amp;D                         52000
+         6 meet                 finance                     55000
+         7 anjali               marketing                   42000
+         8 anil                 accounts                    60000
+         9 jimin                production                  65000
+        10 hitesh               administration              70000
+
+10 rows selected.</pre></section>
+<section class="card"><div class="head"><h2>Q1 — Rename employee → emp</h2><button class="copy" onclick="copy('q1')">Copy</button></div><pre id="q1">SQL&gt; RENAME employee TO emp;
+Table renamed.
+
+SQL&gt; SELECT * FROM emp;</pre></section>
+<section class="card"><div class="head"><h2>Q2 — Add pincode</h2><button class="copy" onclick="copy('q2')">Copy</button></div><pre id="q2">SQL&gt; ALTER TABLE emp ADD pincode INT;
+Table altered.
+
+SQL&gt; SELECT * FROM emp;
+
+     EMPID EMPNAME              DEPARTMENT                SALARY    PINCODE
+---------- -------------------- -------------------- ---------- ----------
+         1 dev                  sales                       30000
+         2 yugi                 IT                          20000
+         3 harshit              hod                         40000
+         4 james                hr                          50000
+         5 manthan              R&amp;D                         52000
+         6 meet                 finance                     55000
+         7 anjali               marketing                   42000
+         8 anil                 accounts                    60000
+         9 jimin                production                  65000
+        10 hitesh               administration              70000
+
+10 rows selected.</pre></section>
+<section class="card"><div class="head"><h2>Q3 — Rename empname → ename</h2><button class="copy" onclick="copy('q3')">Copy</button></div><pre id="q3">SQL&gt; ALTER TABLE emp RENAME COLUMN empname TO ename;
+Table altered.
+
+SQL&gt; SELECT * FROM emp;
+
+     EMPID ENAME                DEPARTMENT                SALARY    PINCODE
+---------- -------------------- -------------------- ---------- ----------
+         1 dev                  sales                       30000
+         2 yugi                 IT                          20000
+         3 harshit              hod                         40000
+         4 james                hr                          50000
+         5 manthan              R&amp;D                         52000
+         6 meet                 finance                     55000
+         7 anjali               marketing                   42000
+         8 anil                 accounts                    60000
+         9 jimin                production                  65000
+        10 hitesh               administration              70000
+
+10 rows selected.</pre></section>
+<section class="card"><div class="head"><h2>Q4 — Add city + change size to 10</h2><button class="copy" onclick="copy('q4')">Copy</button></div><pre id="q4">SQL&gt; ALTER TABLE emp ADD city VARCHAR2(30);
+Table altered.
+
+SQL&gt; ALTER TABLE emp MODIFY city VARCHAR2(10);
+Table altered.
+
+SQL&gt; SELECT * FROM emp;
+
+     EMPID ENAME                DEPARTMENT                SALARY    PINCODE CITY
+---------- -------------------- -------------------- ---------- ---------- ----------
+         1 dev                  sales                       30000
+         2 yugi                 IT                          20000
+         3 harshit              hod                         40000
+         4 james                hr                          50000
+         5 manthan              R&amp;D                         52000
+         6 meet                 finance                     55000
+         7 anjali               marketing                   42000
+         8 anil                 accounts                    60000
+         9 jimin                production                  65000
+        10 hitesh               administration              70000
+
+10 rows selected.</pre></section>
+<section class="card"><div class="head"><h2>Q1–Q4 Commands Only</h2><button class="copy" onclick="copy('qcmd')">Copy</button></div><pre id="qcmd">-- Q1
+RENAME employee TO emp;
+
+-- Q2
+ALTER TABLE emp ADD pincode INT;
+
+-- Q3
+ALTER TABLE emp RENAME COLUMN empname TO ename;
+
+-- Q4
+ALTER TABLE emp ADD city VARCHAR2(30);
+ALTER TABLE emp MODIFY city VARCHAR2(10);</pre></section>
+<div class="note"><strong>Important:</strong> SQL*Plus column spacing may look slightly different depending on your Oracle version and terminal width. The SQL commands themselves are ready for Oracle SQL Command Line.</div>
+<div class="footer">SQL Practical 7 • Built for quick lab use</div>
+</main>
+<script>
+function toast(){const t=document.createElement('div');t.className='toast';t.textContent='Copied ✓';document.body.appendChild(t);setTimeout(()=>t.remove(),900)}
+function copy(id){const el=document.getElementById(id);const text=el.innerText;navigator.clipboard?.writeText(text).then(toast).catch(()=>{const x=document.createElement('textarea');x.value=text;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();toast()})}
+function downloadSQL(){const text=document.getElementById('fullsql').innerText;const b=new Blob([text],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='practical_7.sql';a.click();URL.revokeObjectURL(a.href)}
+</script>
+</body></html>
